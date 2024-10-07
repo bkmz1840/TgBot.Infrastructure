@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>TgBot.Infrastructure</id>
+    <version>0.0.1</version>
+    <authors>IVE</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://github.com/bkmz1840/TgBot.Infrastructure</projectUrl>
+    <description>Infrastructure implementation for easy creating tg bots on C#.</description>
+    <tags>TG bot TgBot infra infrastructure</tags>
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.Extensions.DependencyInjection" version="8.0.0" />
+        <dependency id="Telegram.Bot" version="19.0.0" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

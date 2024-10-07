@@ -4,6 +4,14 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Version>0.0.1</Version>
+        <Title>TgBot.Infrastructure</Title>
+        <Authors>IVE</Authors>
+        <Description>Infrastructure implementation for easy creating tg bots on C#.</Description>
+        <PackageProjectUrl>https://github.com/bkmz1840/TgBot.Infrastructure</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/bkmz1840/TgBot.Infrastructure</RepositoryUrl>
+        <PackageTags>TG bot TgBot infra infrastructure</PackageTags>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
