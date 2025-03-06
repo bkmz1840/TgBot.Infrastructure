@@ -5,16 +5,23 @@ namespace TgBot.Infrastructure.Helpers;
 
 internal static class ServiceCollectionExtensions
 {
+    private static readonly IEnumerable<Type> AllTypes;
+
+    static ServiceCollectionExtensions() 
+    {
+        var entryAssembly = Assembly.GetEntryAssembly() ?? throw new ArgumentException("Assembly of application is not found");
+        var libAssembly = Assembly.GetExecutingAssembly();
+
+        AllTypes = entryAssembly
+            .GetTypes()
+            .Concat(libAssembly.GetTypes());
+    }
+
     public static IServiceCollection AddServicesOf<TServiceInterface>(this IServiceCollection services)
     {
         var interfaceType = typeof(TServiceInterface);
-        
-        var allRealizationsTypes = Assembly
-            .GetExecutingAssembly()
-            .GetTypes()
-            .Where(x => interfaceType != x && interfaceType.IsAssignableFrom(x));
 
-        foreach (var realization in allRealizationsTypes)
+        foreach (var realization in AllTypes.Where(x => interfaceType != x && !x.IsInterface && interfaceType.IsAssignableFrom(x)))
         {
             services.AddSingleton(interfaceType, realization);
         }

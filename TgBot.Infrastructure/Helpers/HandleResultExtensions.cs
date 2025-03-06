@@ -1,13 +1,12 @@
-using TgBot.Infrastructure.Common.Context;
 using TgBot.Infrastructure.Common.Faults;
 using TgBot.Infrastructure.Handlers;
 
 namespace TgBot.Infrastructure.Helpers;
 
-public static class HandleResultBuilder
+public static class HandleResultExtensions
 {
-    public static HandleResult BuildFailedResult(
-        Fault fault,
+    public static HandleResult AsFailedResult(
+        this Fault fault,
         bool stayHandlerAsActive = false,
         bool needUpdateContext = false)
         => new()

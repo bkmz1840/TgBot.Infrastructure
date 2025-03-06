@@ -26,12 +26,12 @@ public class LocalContextRepository : IContextRepository
         if (!handlerContextsByChatId.ContainsKey(chatId) &&
             !handlerContextsByChatId.TryAdd(chatId, new Dictionary<string, object>()))
         {
-            return Task.FromResult(HandleResultBuilder.BuildFailedResult(new ContextUpdateFailedFault()));
+            return Task.FromResult(new ContextUpdateFailedFault().AsFailedResult());
         }
 
         if (!handlerContextsByChatId.TryGetValue(chatId, out var contextsByHandler))
         {
-            return Task.FromResult(HandleResultBuilder.BuildFailedResult(new ContextUpdateFailedFault()));
+            return Task.FromResult(new ContextUpdateFailedFault().AsFailedResult());
         }
 
         contextsByHandler[handlerCommand] = context;

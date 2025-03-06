@@ -17,6 +17,8 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
     private ITelegramBotClient bot = default!;
     private IHandlerExecutor executor = default!;
 
+    protected abstract Type SettingsType { get; }
+
     protected TgBotApplication()
     {
         cancellationTokenRegistration = new CancellationTokenRegistration();
@@ -41,18 +43,16 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
     
     private ServiceProvider SetupServices()
     {
-        var services = new ServiceCollection();
-
-        services
-            .AddSingleton<ISettings>()
-            .AddSingleton<IContextRepository>()
-            .AddServicesOf<IHandler>()
-            .AddServicesOf<ICallbackDataHandler>()
-            .AddSingleton<IHandlerExecutor>();
+        var services = new ServiceCollection()
+            .AddSingleton(typeof(ISettings), SettingsType)
+            .AddSingleton<IContextRepository, LocalContextRepository>()
+            .AddSingleton<IHandlerExecutor, HandlerExecutor>();
 
         RegisterServices(services);
 
         return services
+            .AddServicesOf<IHandler>()
+            .AddServicesOf<ICallbackDataHandler>()
             .AddServicesOf<IJob>()
             .AddServicesOf<IInitializable>()
             .BuildServiceProvider();
@@ -79,7 +79,7 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
             await OnHandleResultAsync(
                 botClient,
                 update,
-                HandleResultBuilder.BuildFailedResult(new EmptyMessageFault()),
+                new EmptyMessageFault().AsFailedResult(),
                 cancellationToken);
             return;
         }
@@ -89,7 +89,7 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
             await OnHandleResultAsync(
                 botClient,
                 update,
-                HandleResultBuilder.BuildFailedResult(new UserNotFoundFault()),
+                new UserNotFoundFault().AsFailedResult(),
                 cancellationToken);
             return;
         }
@@ -117,7 +117,7 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
             await OnHandleResultAsync(
                 botClient,
                 update,
-                HandleResultBuilder.BuildFailedResult(new CallbackDataInvalidFault()),
+                new CallbackDataInvalidFault().AsFailedResult(),
                 cancellationToken);
             return;
         }
@@ -127,7 +127,7 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
             await OnHandleResultAsync(
                 botClient,
                 update,
-                HandleResultBuilder.BuildFailedResult(new ChatNotFoundFault()),
+                new ChatNotFoundFault().AsFailedResult(),
                 cancellationToken);
             return;
         }
@@ -173,11 +173,15 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
     {
         cancellationTokenRegistration.Dispose();
         serviceProvider.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync()
     {
         await cancellationTokenRegistration.DisposeAsync();
         await serviceProvider.DisposeAsync();
+
+        GC.SuppressFinalize(this);
     }
 }

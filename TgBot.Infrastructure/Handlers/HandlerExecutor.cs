@@ -36,7 +36,7 @@ internal class HandlerExecutor(
 
         if (splitCallbackData.Length < 2)
         {
-            return HandleResultBuilder.BuildFailedResult(new CallbackDataInvalidFault());
+            return new CallbackDataInvalidFault().AsFailedResult();
         }
         
         var callbackDataHandler = serviceProvider
@@ -45,7 +45,7 @@ internal class HandlerExecutor(
         
         if (!activeHandlerByChatId.TryGetValue(callbackData.ChatId, out var activeHandler) || callbackDataHandler is null)
         {
-            return HandleResultBuilder.BuildFailedResult(new HandlerNotFoundFault());
+            return new HandlerNotFoundFault().AsFailedResult();
         }
 
         var updatedCallbackData = callbackData with
@@ -75,7 +75,7 @@ internal class HandlerExecutor(
 
         if (newHandler is null)
         {
-            return HandleResultBuilder.BuildFailedResult(new HandlerNotFoundFault());
+            return new HandlerNotFoundFault().AsFailedResult();
         }
 
         if (activeHandlerByChatId.TryRemove(update.ChatId, out var oldHandler) && oldHandler is not null)
@@ -102,7 +102,7 @@ internal class HandlerExecutor(
 
         if (newHandlerResult.StayHandlerAsActive && !activeHandlerByChatId.TryAdd(update.ChatId, newHandler))
         {
-            return HandleResultBuilder.BuildFailedResult(new SwitchHandlerFault());
+            return new SwitchHandlerFault().AsFailedResult();
         }
 
         return newHandlerResult;
@@ -115,7 +115,7 @@ internal class HandlerExecutor(
     {
         if (!activeHandlerByChatId.TryGetValue(update.ChatId, out var activeHandler))
         {
-            return HandleResultBuilder.BuildFailedResult(new HandlerNotFoundFault());
+            return new HandlerNotFoundFault().AsFailedResult();
         }
 
         var handleResult = await CallHandlerAsync(
@@ -130,7 +130,7 @@ internal class HandlerExecutor(
         if (!handleResult.StayHandlerAsActive && 
             !activeHandlerByChatId.TryRemove(update.ChatId, out _))
         {
-            return HandleResultBuilder.BuildFailedResult(new SwitchHandlerFault());
+            return new SwitchHandlerFault().AsFailedResult();
         }
 
         return handleResult;
