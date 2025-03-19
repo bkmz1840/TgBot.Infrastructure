@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using TgBot.Infrastructure.Common.Context;
 using TgBot.Infrastructure.Common.Faults;
+using TgBot.Infrastructure.Common.Settings;
 using TgBot.Infrastructure.Helpers;
 
 namespace TgBot.Infrastructure.Handlers;

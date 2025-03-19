@@ -4,20 +4,31 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using TgBot.Infrastructure;
 using TgBot.Infrastructure.Common.Faults;
+using TgBot.Infrastructure.Common.Settings;
 using TgBot.Infrastructure.Handlers;
 
 namespace Example;
 
+[ApplicationSettings(typeof(Settings))]
 internal class ExampleTgBotApplication : TgBotApplication
 {
     private const string DefaultErrorText = "Oh... Something gone wrong. Please, try later";
     private const string HandlerNotFoundMessage = "Please, select a command";
 
-    protected override Type SettingsType => typeof(Settings);
+    protected override string EnvironmentName
+    {
+        get
+        {
+#if DEBUG
+            return "debug";
+#else
+            return "release";
+#endif
+        }
+    }
 
     protected override void RegisterServices(IServiceCollection serviceCollection)
-        => serviceCollection
-            .AddSingleton<ExampleMessageBuilder>();
+        => serviceCollection.AddSingleton<ExampleMessageBuilder>();
 
     protected override async Task OnHandleResultAsync(
         ITelegramBotClient botClient,
@@ -77,6 +88,8 @@ internal class ExampleTgBotApplication : TgBotApplication
         {
             Console.WriteLine("Oh no.. Bot is dead.\nGetMe exception:");
             LogException(getMeException);
+            
+            Environment.Exit(1);
         }
     }
 

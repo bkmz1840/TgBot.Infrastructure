@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using TgBot.Infrastructure.Common.Settings;
 
 namespace TgBot.Infrastructure.Helpers;
 
@@ -27,5 +28,24 @@ internal static class ServiceCollectionExtensions
         }
 
         return services;
+    }
+
+    public static IServiceCollection AddSettings(
+        this IServiceCollection services,
+        TgBotApplication application,
+        string environment)
+    {
+        var applicationType = application.GetType();
+        var attribute = applicationType.GetCustomAttribute<ApplicationSettingsAttribute>();
+
+        if (attribute is null)
+        {
+            throw new ApplicationException($"Implementation '{nameof(ISettings)}' for '{applicationType.Name}' is not found. " +
+                                           $"Mark your application class using '{nameof(ApplicationSettingsAttribute)}'");
+        }
+
+        var settings = SettingsProvider.Get(attribute.SettingsClassType, environment);
+        Console.WriteLine(settings.FailUpdateOnContextUpdateFailed);
+        return services.AddSingleton(typeof(ISettings), settings);
     }
 }

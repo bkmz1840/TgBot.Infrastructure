@@ -4,6 +4,7 @@ using Telegram.Bot.Types;
 using TgBot.Infrastructure.Common;
 using TgBot.Infrastructure.Common.Context;
 using TgBot.Infrastructure.Common.Faults;
+using TgBot.Infrastructure.Common.Settings;
 using TgBot.Infrastructure.Handlers;
 using TgBot.Infrastructure.Helpers;
 using TgBot.Infrastructure.Jobs;
@@ -12,12 +13,16 @@ namespace TgBot.Infrastructure;
 
 public abstract class TgBotApplication : IDisposable, IAsyncDisposable
 {
+    private const string ApplicationEnvironmentSystemVariableName = "BOT_ENVIRONMENT"; 
+    
     private readonly CancellationTokenRegistration cancellationTokenRegistration;
     private readonly ServiceProvider serviceProvider;
+    
     private ITelegramBotClient bot = default!;
     private IHandlerExecutor executor = default!;
 
-    protected abstract Type SettingsType { get; }
+    protected virtual string EnvironmentName
+        => Environment.GetEnvironmentVariable(ApplicationEnvironmentSystemVariableName) ?? string.Empty;
 
     protected TgBotApplication()
     {
@@ -44,7 +49,7 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
     private ServiceProvider SetupServices()
     {
         var services = new ServiceCollection()
-            .AddSingleton(typeof(ISettings), SettingsType)
+            .AddSettings(this, EnvironmentName)
             .AddSingleton<IContextRepository, LocalContextRepository>()
             .AddSingleton<IHandlerExecutor, HandlerExecutor>();
 

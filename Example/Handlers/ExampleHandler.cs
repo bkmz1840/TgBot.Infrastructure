@@ -4,6 +4,7 @@ using Example.Helpers;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 using TgBot.Infrastructure;
+using TgBot.Infrastructure.Common.Settings;
 using TgBot.Infrastructure.Handlers;
 
 namespace Example.Handlers;
@@ -48,7 +49,7 @@ internal class ExampleHandler(ISettings settings, ExampleMessageBuilder exampleM
             };
         }
 
-        if (context.LastMessageId.HasValue && !context.LastMessageLiked)
+        if (context is { LastMessageId: not null, LastMessageLiked: false })
         {
             await botClient.EditMessageReplyMarkupAsync(
                 update.ChatId,
@@ -88,16 +89,14 @@ internal class ExampleHandler(ISettings settings, ExampleMessageBuilder exampleM
         ExampleHandlerContext context,
         CancellationToken cancellationToken)
     {
-        var markup = new InlineKeyboardMarkup(new[]
-        {
-            new[]
-            {
+        var markup = new InlineKeyboardMarkup([
+            [
                 new InlineKeyboardButton("Like message?")
                 {
                     CallbackData = $"LikeMessage{settings.CallbackDataPrefixDelimiter}true"
                 }
-            }
-        });
+            ]
+        ]);
 
         var messageText = exampleMessageBuilder.Build(context);
 

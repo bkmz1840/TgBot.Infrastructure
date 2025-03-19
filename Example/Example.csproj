@@ -10,5 +10,11 @@
     <ItemGroup>
       <ProjectReference Include="..\TgBot.Infrastructure\TgBot.Infrastructure.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <Content Include="Settings\settings*.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 
 </Project>
