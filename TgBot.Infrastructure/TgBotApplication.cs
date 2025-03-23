@@ -18,8 +18,9 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
     private readonly CancellationTokenRegistration cancellationTokenRegistration;
     private readonly ServiceProvider serviceProvider;
     
-    private ITelegramBotClient bot = default!;
-    private IHandlerExecutor executor = default!;
+    private ITelegramBotClient bot = null!;
+    private IHandlerExecutor executor = null!;
+    private BackgroundWorker backgroundWorker = null!;
 
     protected virtual string EnvironmentName
         => Environment.GetEnvironmentVariable(ApplicationEnvironmentSystemVariableName) ?? string.Empty;
@@ -38,6 +39,10 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
         var settings = serviceProvider.GetRequiredService<ISettings>();
         
         bot = new TelegramBotClient(settings.BotToken);
+        backgroundWorker = serviceProvider.GetRequiredService<BackgroundWorker>();
+        
+        backgroundWorker.Start(bot, cancellationTokenRegistration.Token);
+        
         await bot.ReceiveAsync(
             OnUpdateAsync,
             OnPollingErrorAsync,
@@ -50,8 +55,7 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
     {
         var services = new ServiceCollection()
             .AddSettings(this, EnvironmentName)
-            .AddSingleton<IContextRepository, LocalContextRepository>()
-            .AddSingleton<IHandlerExecutor, HandlerExecutor>();
+            .AddSingleton<IContextRepository, LocalContextRepository>();
 
         RegisterServices(services);
 
@@ -60,6 +64,8 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
             .AddServicesOf<ICallbackDataHandler>()
             .AddServicesOf<IJob>()
             .AddServicesOf<IInitializable>()
+            .AddSingleton<IHandlerExecutor, HandlerExecutor>()
+            .AddSingleton<BackgroundWorker>()
             .BuildServiceProvider();
     }
 
@@ -178,6 +184,7 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
     {
         cancellationTokenRegistration.Dispose();
         serviceProvider.Dispose();
+        backgroundWorker.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -186,6 +193,7 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
     {
         await cancellationTokenRegistration.DisposeAsync();
         await serviceProvider.DisposeAsync();
+        await backgroundWorker.DisposeAsync();
 
         GC.SuppressFinalize(this);
     }

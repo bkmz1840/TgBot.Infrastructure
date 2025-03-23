@@ -21,7 +21,8 @@ internal class ExampleHandler(ISettings settings, ExampleMessageBuilder exampleM
     {
         await botClient.SendTextMessageAsync(
             update.ChatId,
-            "Send me what you want to say",
+            "Send me what you want to say.\n" +
+            "After you can continue sending messages that check what happened",
             cancellationToken: cancellationToken);
 
         return new HandleResult

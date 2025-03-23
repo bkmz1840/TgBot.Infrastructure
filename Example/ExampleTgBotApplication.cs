@@ -19,6 +19,7 @@ internal class ExampleTgBotApplication : TgBotApplication
     {
         get
         {
+// For example
 #if DEBUG
             return "debug";
 #else

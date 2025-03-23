@@ -45,7 +45,6 @@ internal static class ServiceCollectionExtensions
         }
 
         var settings = SettingsProvider.Get(attribute.SettingsClassType, environment);
-        Console.WriteLine(settings.FailUpdateOnContextUpdateFailed);
         return services.AddSingleton(typeof(ISettings), settings);
     }
 }

@@ -4,5 +4,8 @@ namespace TgBot.Infrastructure.Jobs;
 
 public interface IJob
 {
-    Task Execute(ITelegramBotClient botClient);
+    public TimeSpan Interval { get; }
+    public bool OneTime => false;
+    
+    Task DoWork(ITelegramBotClient botClient, CancellationToken cancellationToken);
 }
