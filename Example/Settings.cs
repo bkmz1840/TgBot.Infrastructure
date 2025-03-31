@@ -2,7 +2,7 @@ using TgBot.Infrastructure.Common.Settings;
 
 namespace Example;
 
-internal class Settings : ISettings
+internal record Settings : ISettings
 {
     public string BotToken { get; init; } = "";
     public string CallbackDataPrefixDelimiter { get; init; } = ":";
