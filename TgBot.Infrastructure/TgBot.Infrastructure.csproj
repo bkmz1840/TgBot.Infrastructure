@@ -4,19 +4,25 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.0.2</Version>
+        <Version>0.0.3</Version>
         <Title>TgBot.Infrastructure</Title>
+        <PackageId>TgBot.Infrastructure</PackageId>
         <Authors>IVE</Authors>
         <Description>Infrastructure implementation for easy creating tg bots on C#.</Description>
         <PackageProjectUrl>https://github.com/bkmz1840/TgBot.Infrastructure</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/bkmz1840/TgBot.Infrastructure</RepositoryUrl>
-        <PackageTags>TG bot TgBot infra infrastructure</PackageTags>
+        <RepositoryUrl>https://github.com/bkmz1840/TgBot.Infrastructure.git</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageTags>TG;bot;TgBot;infra;infrastructure</PackageTags>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
       <PackageReference Include="Telegram.Bot" Version="19.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>
