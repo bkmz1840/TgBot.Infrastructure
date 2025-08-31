@@ -20,21 +20,20 @@ internal static class SettingsProvider
     public static ISettings Get(Type settingsClassType, string environment)
     {
         var settingsFile = FindSettingsFile(environment);
-        var json = File.ReadAllText(settingsFile);
-        
-        var settings = JsonSerializer.Deserialize(json, settingsClassType, JsonOptions) ??
-                       Activator.CreateInstance(settingsClassType);
+
+        var settings = string.IsNullOrEmpty(settingsFile)
+            ? Activator.CreateInstance(settingsClassType)
+            : JsonSerializer.Deserialize(File.ReadAllText(settingsFile), settingsClassType, JsonOptions);
 
         if (settings is null)
         {
-            throw new ApplicationException($"Could not create instance of '{settingsClassType.Name}'" +
-                                           $"from settings file '{settingsFile}'");
+            throw new ApplicationException($"Could not create instance of '{settingsClassType.Name}'");
         }
         
         return (ISettings)settings;
     }
 
-    private static string FindSettingsFile(string environment)
+    private static string? FindSettingsFile(string environment)
     {
         var basePath = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -45,15 +44,6 @@ internal static class SettingsProvider
         var fileName = $"{ApplicationSettingsJsonFileName}{fileNameSuffix}.json";
         var options = new EnumerationOptions { RecurseSubdirectories = true };
         
-        var settingsFiles = Directory.GetFiles(basePath, fileName, options);
-
-        return settingsFiles.Length switch
-        {
-            0 => throw new FileNotFoundException($"Settings file not found '{fileName}' not found in project"),
-            
-            > 1 => throw new ApplicationException($"Found several '{fileName}' settings files. " +
-                                                  $"Provide only one settings file for environment '{environment}'"),
-            _ => settingsFiles.Single()
-        };
+        return Directory.GetFiles(basePath, fileName, options).FirstOrDefault();
     }
 }

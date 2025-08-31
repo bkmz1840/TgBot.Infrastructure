@@ -40,13 +40,16 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
         
         bot = new TelegramBotClient(settings.BotToken);
         backgroundWorker = serviceProvider.GetRequiredService<BackgroundWorker>();
+
+        var cancellationToken = cancellationTokenRegistration.Token;
+        cancellationToken.Register(async () => await DisposeAsync());
         
-        backgroundWorker.Start(bot, cancellationTokenRegistration.Token);
+        backgroundWorker.Start(bot, cancellationToken);
         
         await bot.ReceiveAsync(
             OnUpdateAsync,
             OnPollingErrorAsync,
-            cancellationToken: cancellationTokenRegistration.Token);
+            cancellationToken: cancellationToken);
     }
 
     protected abstract void RegisterServices(IServiceCollection serviceCollection);

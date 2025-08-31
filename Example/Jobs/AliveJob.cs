@@ -12,6 +12,11 @@ public class AliveJob : IJob
     
     public async Task DoWork(ITelegramBotClient botClient, CancellationToken cancellationToken)
     {
+        if (ChatId == 0)
+        {
+            return;
+        }
+        
         await botClient.SendTextMessageAsync(
             ChatId,
             "I am alive \u2699\ufe0f\n" +

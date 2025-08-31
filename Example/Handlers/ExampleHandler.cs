@@ -6,6 +6,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using TgBot.Infrastructure;
 using TgBot.Infrastructure.Common.Settings;
 using TgBot.Infrastructure.Handlers;
+using TgBot.Infrastructure.Helpers;
 
 namespace Example.Handlers;
 
@@ -90,14 +91,13 @@ internal class ExampleHandler(ISettings settings, ExampleMessageBuilder exampleM
         ExampleHandlerContext context,
         CancellationToken cancellationToken)
     {
-        var markup = new InlineKeyboardMarkup([
-            [
-                new InlineKeyboardButton("Like message?")
-                {
-                    CallbackData = $"LikeMessage{settings.CallbackDataPrefixDelimiter}true"
-                }
-            ]
-        ]);
+        var markup = new InlineKeyboardMarkupBuilder()
+            .AddButtonRow()
+            .AddButton(new InlineKeyboardButton("Like message?")
+            {
+                CallbackData = $"LikeMessage{settings.CallbackDataPrefixDelimiter}true"
+            })
+            .Build();
 
         var messageText = exampleMessageBuilder.Build(context);
 

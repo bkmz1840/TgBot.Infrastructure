@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using TgBot.Infrastructure.Common.Context;
 using TgBot.Infrastructure.Common.Faults;
@@ -9,12 +8,13 @@ using TgBot.Infrastructure.Helpers;
 namespace TgBot.Infrastructure.Handlers;
 
 internal class HandlerExecutor(
-    IServiceProvider serviceProvider,
+    IEnumerable<IHandler> handlers,
+    IEnumerable<ICallbackDataHandler> callbackDataHandlers,
     ISettings settings,
     IContextRepository contextRepository) : IHandlerExecutor
 {
     private readonly ConcurrentDictionary<long, IHandler> activeHandlerByChatId = new();
-    
+
     public async Task<HandleResult> ExecuteHandlerAsync(
         ITelegramBotClient botClient,
         BotUpdate update,
@@ -40,9 +40,7 @@ internal class HandlerExecutor(
             return new CallbackDataInvalidFault().AsFailedResult();
         }
         
-        var callbackDataHandler = serviceProvider
-            .GetServices<ICallbackDataHandler>()
-            .FirstOrDefault(x => x.CallbackDataPrefix == splitCallbackData.First());
+        var callbackDataHandler = callbackDataHandlers.FirstOrDefault(x => x.CallbackDataPrefix == splitCallbackData.First());
         
         if (!activeHandlerByChatId.TryGetValue(callbackData.ChatId, out var activeHandler) || callbackDataHandler is null)
         {
@@ -70,9 +68,7 @@ internal class HandlerExecutor(
         CancellationToken cancellationToken)
     {
         var command = update.Message.Text![1..];
-        var newHandler = serviceProvider
-            .GetServices<IHandler>()
-            .FirstOrDefault(x => x.Command == command);
+        var newHandler = handlers.FirstOrDefault(x => x.Command == command);
 
         if (newHandler is null)
         {
