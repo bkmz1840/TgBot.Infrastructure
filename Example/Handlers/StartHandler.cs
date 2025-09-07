@@ -1,3 +1,4 @@
+using Example.Faults;
 using Telegram.Bot;
 using TgBot.Infrastructure;
 using TgBot.Infrastructure.Handlers;
@@ -19,12 +20,7 @@ internal class StartHandler : IHandler
             "Hello! What's your name?",
             cancellationToken: cancellationToken);
 
-        return new HandleResult
-        {
-            NewContext = context,
-            NeedUpdateContext = false,
-            StayHandlerAsActive = true
-        };
+        return HandleResult.Success(true);
     }
 
     public async Task<HandleResult> HandleNextMessageAsync(
@@ -33,6 +29,8 @@ internal class StartHandler : IHandler
         object? context,
         CancellationToken cancellationToken)
     {
+        throw new EmptyContextFault();
+        
         var greetingsText = $"I'm glad to meet you, {update.Message.Text ?? "strange"}";
 
         await botClient.SendTextMessageAsync(
@@ -40,17 +38,6 @@ internal class StartHandler : IHandler
             greetingsText,
             cancellationToken: cancellationToken);
 
-        return new HandleResult
-        {
-            NewContext = context,
-            NeedUpdateContext = false,
-            StayHandlerAsActive = false
-        };
+        return HandleResult.Success();
     }
-
-    public Task<HandleResult> ExecuteOnHandlerLeaveAsync(
-        ITelegramBotClient botClient,
-        object? context,
-        CancellationToken cancellationToken)
-        => Task.FromResult(new HandleResult());
 }

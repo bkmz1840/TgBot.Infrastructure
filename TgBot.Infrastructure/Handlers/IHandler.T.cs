@@ -31,7 +31,6 @@ public interface IHandler<in TContext> : IHandler
         object? context,
         CancellationToken cancellationToken) 
         => HandleSetHandlerToActiveAsync(botClient, update, (TContext?)context, cancellationToken);
-    
 
     /// <summary>
     /// Call when user send message for active handler
@@ -45,7 +44,8 @@ public interface IHandler<in TContext> : IHandler
         ITelegramBotClient botClient,
         BotUpdate update,
         TContext? context,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+        => Task.FromResult(HandleResult.Success());
 
     Task<HandleResult> IHandler.HandleNextMessageAsync(
         ITelegramBotClient botClient,
@@ -64,11 +64,37 @@ public interface IHandler<in TContext> : IHandler
     Task<HandleResult> ExecuteOnHandlerLeaveAsync(
         ITelegramBotClient botClient,
         TContext? context,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+        => Task.FromResult(new HandleResult
+        {
+            NeedUpdateContext = true
+        });
 
     Task<HandleResult> IHandler.ExecuteOnHandlerLeaveAsync(
         ITelegramBotClient botClient,
         object? context,
         CancellationToken cancellationToken)
         => ExecuteOnHandlerLeaveAsync(botClient, (TContext?)context, cancellationToken);
+
+    /// <summary>
+    /// Call when user send callback data (click on inline button, for example)
+    /// </summary>
+    /// <param name="botClient">Client TG bot</param>
+    /// <param name="callbackData">Data from clicked button</param>
+    /// <param name="context">Current context of handler in chat</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <returns>Result of handle</returns>
+    Task<HandleResult> HandleCallBackDataAsync(
+        ITelegramBotClient botClient,
+        BotCallbackData callbackData,
+        TContext? context,
+        CancellationToken cancellationToken)
+        => Task.FromResult(HandleResult.Success(true));
+
+    Task<HandleResult> IHandler.HandleCallBackDataAsync(
+        ITelegramBotClient botClient,
+        BotCallbackData callbackData,
+        object? context,
+        CancellationToken cancellationToken)
+        => HandleCallBackDataAsync(botClient, callbackData, (TContext?)context, cancellationToken);
 }

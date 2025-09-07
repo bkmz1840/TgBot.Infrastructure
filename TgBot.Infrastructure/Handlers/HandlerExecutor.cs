@@ -9,7 +9,6 @@ namespace TgBot.Infrastructure.Handlers;
 
 internal class HandlerExecutor(
     IEnumerable<IHandler> handlers,
-    IEnumerable<ICallbackDataHandler> callbackDataHandlers,
     ISettings settings,
     IContextRepository contextRepository) : IHandlerExecutor
 {
@@ -33,31 +32,17 @@ internal class HandlerExecutor(
         BotCallbackData callbackData,
         CancellationToken cancellationToken)
     {
-        var splitCallbackData = callbackData.Data.Split(settings.CallbackDataPrefixDelimiter);
-
-        if (splitCallbackData.Length < 2)
-        {
-            return new CallbackDataInvalidFault().AsFailedResult();
-        }
-        
-        var callbackDataHandler = callbackDataHandlers.FirstOrDefault(x => x.CallbackDataPrefix == splitCallbackData.First());
-        
-        if (!activeHandlerByChatId.TryGetValue(callbackData.ChatId, out var activeHandler) || callbackDataHandler is null)
+        if (!activeHandlerByChatId.TryGetValue(callbackData.ChatId, out var activeHandler))
         {
             return new HandlerNotFoundFault().AsFailedResult();
         }
 
-        var updatedCallbackData = callbackData with
-        {
-            Data = string.Join(settings.CallbackDataPrefixDelimiter, splitCallbackData.Skip(1))
-        };
-
         return await CallHandlerAsync(
             callbackData.ChatId,
             activeHandler.Command,
-            async context => await callbackDataHandler.HandleCallbackDataAsync(
+            async context => await activeHandler.HandleCallBackDataAsync(
                 botClient,
-                updatedCallbackData,
+                callbackData,
                 context,
                 cancellationToken));
     }
@@ -75,7 +60,7 @@ internal class HandlerExecutor(
             return new HandlerNotFoundFault().AsFailedResult();
         }
 
-        if (activeHandlerByChatId.TryRemove(update.ChatId, out var oldHandler) && oldHandler is not null)
+        if (activeHandlerByChatId.TryRemove(update.ChatId, out var oldHandler))
         {
             var oldHandlerResult = await CallHandlerAsync(
                 update.ChatId,

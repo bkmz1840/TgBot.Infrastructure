@@ -38,7 +38,8 @@ public interface IHandler
         ITelegramBotClient botClient,
         BotUpdate update,
         object? context,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+        => Task.FromResult(HandleResult.Success());
 
     /// <summary>
     /// Call when user send other command
@@ -50,5 +51,24 @@ public interface IHandler
     Task<HandleResult> ExecuteOnHandlerLeaveAsync(
         ITelegramBotClient botClient,
         object? context,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+        => Task.FromResult(new HandleResult
+        {
+            NeedUpdateContext = true
+        });
+
+    /// <summary>
+    /// Call when user send callback data (click on inline button, for example)
+    /// </summary>
+    /// <param name="botClient">Client TG bot</param>
+    /// <param name="callbackData">Data from clicked button</param>
+    /// <param name="context">Current context of handler in chat</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <returns>Result of handle</returns>
+    Task<HandleResult> HandleCallBackDataAsync(
+        ITelegramBotClient botClient,
+        BotCallbackData callbackData,
+        object? context,
+        CancellationToken cancellationToken)
+        => Task.FromResult(HandleResult.Success(true));
 }

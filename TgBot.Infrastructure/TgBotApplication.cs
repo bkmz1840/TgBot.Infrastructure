@@ -64,7 +64,6 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
 
         return services
             .AddServicesOf<IHandler>()
-            .AddServicesOf<ICallbackDataHandler>()
             .AddServicesOf<IJob>()
             .AddServicesOf<IInitializable>()
             .AddSingleton<IHandlerExecutor, HandlerExecutor>()
@@ -114,6 +113,10 @@ public abstract class TgBotApplication : IDisposable, IAsyncDisposable
         {
             var handleData = await executor.ExecuteHandlerAsync(botClient, wrappedUpdate, cancellationToken);
             await OnHandleResultAsync(botClient, update, handleData, cancellationToken);
+        }
+        catch (Fault fault)
+        {
+            await OnHandleResultAsync(botClient, update, fault.AsFailedResult(), cancellationToken);
         }
         catch (Exception exception)
         {

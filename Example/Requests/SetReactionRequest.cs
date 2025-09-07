@@ -1,3 +1,4 @@
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using Telegram.Bot.Requests.Abstractions;
@@ -27,6 +28,6 @@ internal class SetReactionRequest(long chatId, int messageId, string emoji = "\u
         };
         var requestBody = JsonSerializer.Serialize(body);
 
-        return new StringContent(requestBody, Encoding.UTF8, "application/json");
+        return new StringContent(requestBody, Encoding.UTF8, MediaTypeNames.Application.Json);
     }
 }

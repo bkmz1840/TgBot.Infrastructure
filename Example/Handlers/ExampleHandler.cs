@@ -1,16 +1,17 @@
 using Example.Contexts;
 using Example.Faults;
 using Example.Helpers;
+using Example.Requests;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 using TgBot.Infrastructure;
-using TgBot.Infrastructure.Common.Settings;
+using TgBot.Infrastructure.Common.Faults;
 using TgBot.Infrastructure.Handlers;
 using TgBot.Infrastructure.Helpers;
 
 namespace Example.Handlers;
 
-internal class ExampleHandler(ISettings settings, ExampleMessageBuilder exampleMessageBuilder) : IHandler<ExampleHandlerContext>
+internal class ExampleHandler(ExampleMessageBuilder exampleMessageBuilder) : IHandler<ExampleHandlerContext>
 {
     public string Command => "example";
 
@@ -76,14 +77,29 @@ internal class ExampleHandler(ISettings settings, ExampleMessageBuilder exampleM
         };
     }
 
-    public Task<HandleResult> ExecuteOnHandlerLeaveAsync(
-        ITelegramBotClient botClient,
+    public async Task<HandleResult> HandleCallBackDataAsync(
+        ITelegramBotClient botClient, 
+        BotCallbackData callbackData, 
         ExampleHandlerContext? context,
         CancellationToken cancellationToken)
-        => Task.FromResult(new HandleResult
+    {
+        if (callbackData.Data != "true")
         {
-            NeedUpdateContext = true
-        });
+            return new CallbackDataInvalidFault().AsFailedResult(true);
+        }
+
+        if (context?.LastMessageId is null)
+        {
+            return new EmptyContextFault().AsFailedResult(true);
+        }
+
+        if (context.LastMessageLiked)
+        {
+            return HandleResult.Success(true);
+        }
+
+        return await LikeMessageAsync(botClient, callbackData.ChatId, context, cancellationToken);
+    }
 
     private async Task<int> SendNewExampleMessageAsync(
         ITelegramBotClient botClient,
@@ -93,20 +109,43 @@ internal class ExampleHandler(ISettings settings, ExampleMessageBuilder exampleM
     {
         var markup = new InlineKeyboardMarkupBuilder()
             .AddButtonRow()
-            .AddButton(new InlineKeyboardButton("Like message?")
-            {
-                CallbackData = $"LikeMessage{settings.CallbackDataPrefixDelimiter}true"
-            })
+            .AddButton(new InlineKeyboardButton("Like message?") { CallbackData = "true" })
             .Build();
-
-        var messageText = exampleMessageBuilder.Build(context);
 
         var lastMessage = await botClient.SendTextMessageAsync(
             chatId,
-            messageText,
+            exampleMessageBuilder.Build(context),
             replyMarkup: markup,
             cancellationToken: cancellationToken);
 
         return lastMessage.MessageId;
+    }
+    
+    private async Task<HandleResult> LikeMessageAsync(
+        ITelegramBotClient botClient,
+        long chatId,
+        ExampleHandlerContext context,
+        CancellationToken cancellationToken)
+    {
+        var request = new SetReactionRequest(chatId, context.LastMessageId!.Value);
+        var response = await botClient.MakeRequestAsync(request, cancellationToken: cancellationToken);
+
+        var newContext = context with { LastMessageLiked = true };
+        var newText = exampleMessageBuilder.Build(newContext);
+
+        await botClient.EditMessageTextAsync(
+            chatId,
+            context.LastMessageId.Value,
+            newText,
+            cancellationToken: cancellationToken);
+
+        return !response
+            ? new HandleFailedFault().AsFailedResult(true)
+            : new HandleResult
+            {
+                NewContext = newContext,
+                NeedUpdateContext = true,
+                StayHandlerAsActive = true
+            };
     }
 }

@@ -17,5 +17,11 @@ public record HandleResult
         {
             throw Error!;
         }
-    } 
+    }
+
+    public static HandleResult Success(bool stayHandlerAsActive = false)
+        => new()
+        {
+            StayHandlerAsActive = stayHandlerAsActive
+        };
 }

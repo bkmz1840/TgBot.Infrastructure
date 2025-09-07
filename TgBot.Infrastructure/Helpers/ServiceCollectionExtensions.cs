@@ -22,7 +22,10 @@ internal static class ServiceCollectionExtensions
     {
         var interfaceType = typeof(TServiceInterface);
 
-        foreach (var realization in AllTypes.Where(x => interfaceType != x && !x.IsInterface && interfaceType.IsAssignableFrom(x)))
+        foreach (var realization in AllTypes.Where(
+                     x => interfaceType != x &&
+                          x is { IsAbstract: false, IsInterface: false } &&
+                          interfaceType.IsAssignableFrom(x)))
         {
             services.AddSingleton(interfaceType, realization);
         }
